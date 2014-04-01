@@ -19,7 +19,8 @@
 "("		{ return LBR; }
 ")"		{ return RBR; }
 "\n"	{ return ENDL; }
-[ \t]   ;
+^\#.*\n	;
+[ \t]+  ;
 .		yyerror("Unknown character");
 
 %%
