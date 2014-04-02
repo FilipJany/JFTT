@@ -16,6 +16,7 @@
 "*"		{ return MUL; }
 "/"		{ return DIV; }
 "^"		{ return POW; }
+"%"		{ return MOD; }
 "("		{ return LBR; }
 ")"		{ return RBR; }
 "\n"	{ return ENDL; }
