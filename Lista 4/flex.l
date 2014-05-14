@@ -1,55 +1,55 @@
-%opiton noyywrap
+%option noyywrap
 %option yylineno
-
 %{
-	#include "bison.tab.h"
+    #include <stdlib.h>
+    #include "bison.tab.h"
+    int yylex();
+    
 %}
-
-%x COMMENT
+%x comment
 
 %%
 
-"(*"			BEGIN(COMMENT)		;
-<COMMENT>		[^*\n]*				;
-<COMMENT>		"*"+[^*\n]*			;
-<COMMENT>		\n					;
-<COMMENT>		"*"+")" 			BEGIN(INITIAL); 
+"(*"                    BEGIN(comment);
+<comment>[^*\n]*        ;
+<comment>"*"+[^*)\n]*   ;
+<comment>\n             ;
+<comment>"*"+")"        BEGIN(INITIAL);
 
-[\t\r\n]+		{ ; }
-CONST			{ return(CONST); 	}
-VAR				{ return(VAR);		}
-BEGIN			{ return(BEGIN);	}
-END				{ return(END);		}
-WHILE			{ return(WHILE);	}
-DO				{ return(DO);		}
-IF				{ return(IF);		}
-THEN			{ return(THEN);		}
-ELSE			{ return(ELSE);		}
-WRITE			{ return(WRITE);	}
-READ			{ return(READ);		}
+[ \t\r\n]+              {}
+CONST                   { return(CONST);    }
+VAR                     { return(VAR);      }
+BEGIN                   { return(BEGIN);    }
+END                     { return(END);      }
 
-":="			{ return(ASSIGN);	}
-"=="			{ return(EQUALS);	}
-"<"				{ return(LESS_T);	}
-">"				{ return(GREAT_T);	}
-"<="			{ return(L_EQUAL);	}
-">="			{ return(G_EQUAL);	}
-"!="			{ return(DIFFER);	}
-"+"				{ return(ADD);		}
-"-"				{ return(SUB);		}
-"*"				{ return(MUL);		}
-"/"				{ return(DIV);		}
-"%"				{ return(MOD);		}
+":="                    { return(ASG);      }
+IF                      { return(IF);       }
+THEN                    { return(THEN);     }
+ELSE                    { return(ELSE);     }
+WHILE                   { return(WHILE);    }
+DO                      { return(DO);       }
+WRITE                   { return(WRITE);    }
+READ                    { return(READ);     }
 
-[0-9]+			{
-					yylval.num = (char*) strdup(yytext);
-					return(NUM);
-				}
-[_a-z]+			{
-					yylval.str = (char*)strdup(yytext);
-					return(ID);
-				}
-";"				{ return(SCNL);		}
-.				{ ; }
+"=="                    { return(EQ);       }
+"<"                     { return(LT);       }
+">"                     { return(GT);       }
+"<="                    { return(LE);       }
+">="                    { return(GE);       }
+"!="                    { return(NE);       }
+
+"+"                     { return(ADD);      }
+"-"                     { return(SUB);      }
+"*"                     { return(MUL);      }
+"/"                     { return(DIV);      }
+"%"                     { return(MOD);      }
+
+[0-9]+                  { yylval.num = atoi(yytext);
+                            return(NUM); }
+[_a-z]+                 { yylval.str = (char *) strdup(yytext);
+                            return(IDE); }
+
+";"                     { return(SEM);      }
+.	;
 
 %%
