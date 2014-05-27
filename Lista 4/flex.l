@@ -2,24 +2,17 @@
 %option yylineno
 %{
     #include <stdlib.h>
-    #include "bison.tab.h"
+    #include "bison2.tab.h"
     int yylex();
     
 %}
-%x comment
 
 %%
-
-"(*"                    BEGIN(comment);
-<comment>[^*\n]*        ;
-<comment>"*"+[^*)\n]*   ;
-<comment>\n             ;
-<comment>"*"+")"        BEGIN(INITIAL);
 
 [ \t\r\n]+              {}
 CONST                   { return(CONST);    }
 VAR                     { return(VAR);      }
-BEGIN                   { return(BEGIN);    }
+BEGIN                   { return(BEG);    }
 END                     { return(END);      }
 
 ":="                    { return(ASG);      }
@@ -30,6 +23,8 @@ WHILE                   { return(WHILE);    }
 DO                      { return(DO);       }
 WRITE                   { return(WRITE);    }
 READ                    { return(READ);     }
+
+"="						{ return(NC);		}
 
 "=="                    { return(EQ);       }
 "<"                     { return(LT);       }
@@ -46,7 +41,7 @@ READ                    { return(READ);     }
 
 [0-9]+                  { yylval.num = atoi(yytext);
                             return(NUM); }
-[_a-z]+                 { yylval.str = (char *) strdup(yytext);
+[_a-z]+                 { yylval.str = (char *)strdup(yytext);
                             return(IDE); }
 
 ";"                     { return(SEM);      }

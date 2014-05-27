@@ -1,55 +1,73 @@
 %{
+	#include <stdio.h>
+	#include <string.h>
+	#include <stdlib.h>
 	
-	#include <iostream>
-	#include <cstdio>
-	#include <sting>
-	#include <vector>
-	
-	#define LLEN 20
-	
-	#definde SYMBOL_NOT_FOUND -1
+	#define MAX_STACK 999
+	#define MAX_LINE 40
 	
 	typedef struct
 	{
-		string identifier;
-		string value;
-		bool type;/*0-normal, 1-constant*/
-	}sym;
+		char* name;
+		int value;
+		int isConstant;
+	}Sym;
 	
-	int symTableLen = 0, outCodeLen = 0;
+	typedef struct
+	{
+		Sym stack[MAX_STACK];
+		int top;
+	}SymStack;
 	
-	char* tArray = new char[LLEN];
+	typedef struct
+	{
+		char* array[MAX_STACK];
+		int top;
+	}CodeStack;
 	
-	vector<sym> symTable;
-	vector<int> jumpStack;
-	vector<string> outCode;
-
-	extern int yylineno;
-
+	typedef struct
+	{
+		int array[MAX_STACK];
+		int top;
+	}JumpStack;
+	
+	void pushSymbol(Sym);
+	Sym popSymbol(SymStack);
+	int getSymbolIndex(char*);
+	
+	void pushCode(char*);
+	char* popCode();
+	int getCodeIndex(char*);
+	int getCodeLength();
+	void addCodeLine(char*);
+	
+	void pushToJumpStack(int);
+	int popFromJumpStack();
+	int getAt(int);
+	
+	SymStack* symbolTable;
+	CodeStack* codeTable;
+	JumpStack* jumpStack;
+	
+	char* tArray[MAX_LINE];
+	
+	int yylex();
+	int yylineno;
 	int yyerror(char* str)
 	{
-		sprintf(tArray, "ERROR: At (%d): %s.\n", yylineno, str);
-		cout << "ERROR: At (" << yylineno <<"): "<< str << ".\n";
-		exit(0); 
+		printf("Error: %s at line %d\n", str, yylineno);
+		return 1;
 	}
-	
-	int getSymbolIndex(string symbolName)
-	{
-		for(int i = 0; i < symTableLen; i++
-			if(symTable.at(i).identifier == symbolName)
-				return i;
-		return SYMBOL_NOT_FOUND; 
-	}	
 %}
 
 %union {
 			char* str;
-			char* num;
+			int num;
 		}
 		
 %token <str> CONST
 %token <str> VAR
-%token <str> BEGIN
+%token <str> BEG
 %token <str> END
 
 %token <str> IF
@@ -63,6 +81,7 @@
 %token <str> READ
 
 %token <str> ASG
+%token <str> NC
 
 %token <str> ADD
 %token <str> SUB
@@ -83,349 +102,272 @@
 %token <str> SEM
 
 %%
-
 program	:
-	| CONST 
-	{
-		sym nSym = {"symF__", "0", false};
-		symTable.push_back(nSym);
-		symTableLen += 1;
-		
-		sprintf(tArray, "SET %d %s", (symTabLen - 1), nSym.value.c_str());
-		outCode.push_back(tArray);
-		outCodeLen += 1;
-	}
-	cdeclarations VAR vdeclarations BEGIN commands END
-	{
-		sprintf(tArray, "HALT");
-		outCode.push_back(tArray);
-		outCodeLen += 1;
-	}
-;
-
-cdeclarations : 
-		cdeclarations IDE EQ NUM
-		{
-			if(getSymbolIndex($<str>2) != SYMBOL_NOT_FOUND)
-			{
-				sprintf(tArray, "ERROR: At (%d): Redeclaration catched.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Redeclaration catched.\n";
-				exit(0); 
-			}
-			else
-			{
-				sym nSym = {$<str>2, $<num>4, true};
-				symTable.push_back(nSym);
-				symTableLen += 1;
-				//sprintf code
-				//add to out code
-			}
-		}
-		|
-;
-
-vdeclarations :
-		vdeclarations IDE
-		{
-			if(getSymbolIndex($<str>2) != SYMBOL_NOT_FOUND)
-			{
-				sprintf(tArray, "ERROR: At (%d): Redeclaration catched.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Redeclaration catched.\n";
-				exit(0); 
-			}
-			else
-			{
-				sym nSym = {$<str>2, "", false};
-				symTable.push_back(nSym);
-				symTableLen += 1;
-			}
-		}
-		|
-;
-
-commands :
-	commands command
-	|
-; 
-
-command :
-	IDE ASG expression SEM
-		{
-			int symIndex = getSymbolIndex($<str>1);
-			if(symIndex == -1)
-			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
-				if(symTable.at(symIndex).type == true)
-				{
-					sprintf(tArray, "ERROR: At (%d): Variable is defined as constant.\n", yylineno);
-					cout << "ERROR: At (" << yylineno <<"): Variable is defined as constant.\n";
-					exit(0); 
-				}
-				else
-				{
-					
-				}
-			}
-		}
-	| IF
-		{
-		}
-	 condition THEN commands
-	 	{
-	 	}
-	 ELSE commands END
-	 	{
-	 	}
-	| WHILE
-		{
-		}
-	 condition DO commands END
-	 	{
-	 	}
-	| READ identifier SEM
-		{
-			int symIndex = getSymbolIndex($<str>2);
-			if(symIndex == SYMBOL_NOT_FOUND)
-			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
-				if(symTable.at(symIndex).type == true)
-				{
-					sprintf(tArray, "ERROR: At (%d): Variable is defined as constant.\n", yylineno);
-					cout << "ERROR: At (" << yylineno <<"): Variable is defined as constant.\n";
-					exit(0); 
-				}
-				else
-				{
-					
-				}
-			}
-		}
-	| WRITE identifier SEM
-		{
-			int symIndex = getSymbolIndex($<str>1);
-			if(symIndex == SYMBOL_NOT_FOUND)
-			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
-				
-			}
-		}
-;
-
-expression :
-	NUM
+	| CONST
 		{
 			
-		}
-	| IDE
-		{
-			int symIndex = getSymbolIndex($<str>1);
-			if(symIndex == SYMBOL_NOT_FOUND)
-			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
-				
-			}
-		}
-	| IDE ADD IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
-			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
-				
-			}
-		}
-	| IDE SUB IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
-			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
-				
-			}
-		}
-	| IDE MUL IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
-			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
-				
-			}
-		}
-	| IDE DIV IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
-			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
-				
-			}
-		}
-	| IDE MOD IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
-			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
-				
-			}
-		}
+		} 
+	  cdeclarations VAR vdeclarations BEG commands END
+	  {
+	  
+	  }
 ;
-
-condition :
-	IDE EQ IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
+cdeclarations : cdeclarations IDE NC NUM
+				{
+					if(getSymbolIndex($<str>2) != -1)
+					{
+						printf("Error: Taka stala juz istnieje!\n");
+						exit(1);
+					}
+					else
+					{
+						Sym s;
+						s.name = $<str>2;
+						s.value = $<num>4;
+						s.isConstant = 1;
+						pushSymbol(s);
+						//printf("pushSymboled new constant(name: %s, value: %d) into stack\n", s.name, s.value);
+						//printf("New stack top = %d\n", symbolTable->top);
+					}
+				}
+				|
+;
+vdeclarations	: vdeclarations IDE
+				{
+					if(getSymbolIndex($<str>2) != -1)
+					{
+						printf("Error: Taka zmienna juz istnieje!\n");
+						exit(1);
+					}
+					else
+					{
+						Sym s;
+						s.name = $<str>2;
+						s.value = 0;
+						s.isConstant = 0;
+						pushSymbol(s);
+						//printf("pushSymboled new variable(name: %s, value: %d) into stack\n", s.name, s.value);
+						//printf("New stack top = %d\n", symbolTable->top);
+					}
+				}
+				|
+;
+commands	: commands command
+				|
+;
+command	: IDE ASG expression SEM
+				{
+					int symIndex = getSymbolIndex($<str>1);
+					if(symIndex == -1)
+					{
+						printf("Error: Nie ma takiej zmiennej\n");
+						exit(1);
+					}
+					else
+					{
+						if(symbolTable->stack[symIndex].isConstant == 1)
+						{
+							printf("Error: Nie mozna przypisac nowej wartosci do zmiennej\n");
+							exit(1);
+						}
+						else
+						{
+							//sprintf(tArray, "STORE %d", symIndex);
+						}
+					}
+				}
+		|IF 
 			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
+				printf("IF\n");
 			}
-			else
+		condition THEN commands 
 			{
+				printf("THEN\n");
+			}
+		ELSE commands END
+			{
+				printf("ELSE\n");
+			}
+			
+		|WHILE 
+			{
+				printf("WHILE\n");
+			}
+		condition DO commands END
+			{
+				printf("DO\n");
 				
 			}
-		}
-	| IDE NE IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
+		|READ IDE SEM
 			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
+				printf("READ\n");
 				
 			}
-		}
-	| IDE LT IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
+		|WRITE IDE SEM
 			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
+				printf("WRITE\n");
 				
 			}
-		}
-	| IDE GT IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
+;
+expression	: NUM
+				{
+					printf("NUM\n");
+				}
+		|IDE			
 			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
+				printf("IDE\n");
 				
 			}
-		}
-	| IDE LE IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
+		|IDE ADD IDE	
 			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
+				int symIndex1 = getSymbolIndex($<str>1);
+				int symIndex2 = getSymbolIndex($<str>3);
+				printf("ADD: (Indexes: %d and %d)\n", symIndex1, symIndex2);
 				
 			}
-		}
-	| IDE GE IDE
-		{
-			int symIndex1 = getSymbolIndex($<str>1);
-			int symIndex2 = getSymbolIndex($<str>3);
-			if(symIndex1 == SYMBOL_NOT_FOUND || symIndex2 == SYMBOL_NOT_FOUND)
+		|IDE SUB IDE	
 			{
-				sprintf(tArray, "ERROR: At (%d): Undefined variable.\n", yylineno);
-				cout << "ERROR: At (" << yylineno <<"): Undefined variable.\n";
-				exit(0); 
-			}
-			else
-			{
+				int symIndex1 = getSymbolIndex($<str>1);
+				int symIndex2 = getSymbolIndex($<str>3);
+				printf("SUB: (Indexes: %d and %d)\n", symIndex1, symIndex2);
 				
 			}
-		}
-;	
+		|IDE MUL IDE	
+			{
+				printf("MUL\n");
+				
+			}
+		|IDE DIV IDE	
+			{
+				printf("DIV\n");
+				
+			}
+		|IDE MOD IDE	
+			{
+				printf("MOD\n");
+			}
+;
+condition	: IDE EQ IDE
+				{
+					printf("EQ\n");
+					
+				}
+		|IDE NE IDE		
+			{
+				printf("NE\n");
+				
+			}
+		|IDE LT IDE		
+			{
+				printf("LT\n");
+				
+			}
+		|IDE GT IDE		
+			{
+				printf("GT\n");
+				
+			}
+		|IDE LE IDE		
+			{
+				printf("LE\n");
+				
+			}
+		|IDE GE IDE		
+			{
+				printf("GE\n");
+				
+			}
+;
 %%
 
+void pushSymbol(Sym i)
+{
+	symbolTable->stack[symbolTable->top] = i;
+	symbolTable->top++;
+}
+Sym popSymbol()
+{
+	symbolTable->top--;
+	return symbolTable->stack[symbolTable->top + 1];
+}
+int getSymbolIndex(char* symName)
+{
+	int i;
+	for(i = 0; i < symbolTable->top; i++)
+		if(!strcmp(symbolTable->stack[i].name, symName))
+			return i;
+	return -1;
+}
+void initSymbolTable()
+{
+	symbolTable = (SymStack *)malloc(sizeof(SymStack));
+	symbolTable->top = 0;
+}
+
+void pushCode(char* str)
+{
+	codeTable->array[codeTable->top] = str;
+	codeTable->top++;
+}
+char* popCode()
+{
+	codeTable->top--;
+	return codeTable->array[codeTable->top + 1];
+}
+int getCodeIndex(char* str)
+{
+	//to chyba nie bedzie mi potrzebne
+	return 0;
+}
+int getCodeLength()
+{
+	return codeTable->top;
+}
+char* codeAt(int i)
+{
+	return codeTable->array[i];
+}
+void initCodeTable()
+{
+	codeTable = (CodeStack*)malloc(sizeof(CodeStack));
+	codeTable->top = 0;
+}
+
+void freeAll()
+{
+	free(symbolTable);
+	free(codeTable);
+}
+
+void pushToJumpStack(int i)
+{
+	jumpStack->array[jumpStack->top] = i;
+	jumpStack->top++;
+}
+int popFromJumpStack()
+{
+	jumpStack->top--;
+	return jumpStack->array[jumpStack->top + 1];
+}
+int getAt(int i)
+{
+	return jumpStack->array[i];
+}
+void initJumpStack()
+{
+	jumpStack = (JumpStack*)malloc(sizeof(JumpStack));
+	jumpStack->top = 0;
+}
 
 
-
-
-
-
-
-
-
-
-
-
-
+int main()
+{
+	initSymbolTable();
+	initCodeTable();
+	initJumpStack();
+	
+	yyparse();
+	
+	freeAll();
+	return 0;
+}
