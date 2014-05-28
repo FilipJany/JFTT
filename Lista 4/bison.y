@@ -103,11 +103,7 @@
 
 %%
 program	:
-	| CONST
-		{
-			
-		} 
-	  cdeclarations VAR vdeclarations BEG commands END
+	| CONST cdeclarations VAR vdeclarations BEG commands END
 	  {
 	  
 	  }
@@ -126,7 +122,7 @@ cdeclarations : cdeclarations IDE NC NUM
 						s.value = $<num>4;
 						s.isConstant = 1;
 						pushSymbol(s);
-						//printf("pushSymboled new constant(name: %s, value: %d) into stack\n", s.name, s.value);
+						//printf("pushedSymbol new constant(name: %s, value: %d) into stack\n", s.name, s.value);
 						//printf("New stack top = %d\n", symbolTable->top);
 					}
 				}
@@ -143,10 +139,9 @@ vdeclarations	: vdeclarations IDE
 					{
 						Sym s;
 						s.name = $<str>2;
-						s.value = 0;
 						s.isConstant = 0;
 						pushSymbol(s);
-						//printf("pushSymboled new variable(name: %s, value: %d) into stack\n", s.name, s.value);
+						//printf("pushedSymbol new variable(name: %s, value: %d) into stack\n", s.name, s.value);
 						//printf("New stack top = %d\n", symbolTable->top);
 					}
 				}
@@ -172,7 +167,7 @@ command	: IDE ASG expression SEM
 						}
 						else
 						{
-							//sprintf(tArray, "STORE %d", symIndex);
+							
 						}
 					}
 				}

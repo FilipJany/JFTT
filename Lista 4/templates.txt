@@ -1,0 +1,83 @@
+Szablony do wykonywania dzialan, jakich mozemy uzyc:
+
+-Dodawanie:
+	*dodawanie jest zaimplementowane w maszynie
+	
+-Odejmowanie:
+	*to samo co wyzej
+	
+-Mnozenie:
+	//zalozenia:
+		wynik w 0
+		mnozna w 1
+		mnoznik w 2
+	//przygotowanie rejestru a pod wynik
+	linia 0:	ZERO	//zerujemy rej a
+				STORE 0	//zerujemy rejestr
+	
+	//main
+				LOAD 1	//pobieramy 1 liczbe
+				JODD 4	//skok do linii 12 gdy nie parzyste
+				
+				LOAD 1	//wykonaj krok mnozenia(gdy mnozna parzysta)
+				SHR
+				STORE 1
+				LOAD 2
+				SHL
+				STORE 2
+				LOAD 1
+				JG 2	//skocz do main
+				
+				LOAD 0
+				ADD 2
+				STORE 0
+				JUMP 4	//skocz do main
+				
+	//w sumie nie wiem czy bedzie dzialac, ale tak mi wyszlo nawet optymalnie :P (na kartce dzialalo)
+	
+-Dzielenie:
+	hmmmm
+	
+-Equal
+	//pomysl: sprawdzic czy (a - b = 0)
+	//zalozenia:
+		a w 0
+		b w 1
+	//zasada dzialania:
+		jezeli a = b to w rej 'a' zostawimy 1 ////rej 'a' to ten specjalny rejestr
+		jezeli a != b to w rej 'a' zostawimy 0
+		
+	//linia 0: 	LOAD 0	//wczytaj a
+				SUB 1	//a - b
+				JG 7	//jezeli wwynik odejmowania jest != 0 to skocz do linii 7 i wpisz 0 do rej 0 (nie sa rowne)
+				LOAD 1
+				SUB 0
+				JG 7
+				INC		//byly rowne zostawiam 1 w 'a'
+				
+	//linia 7:	ZERO
+	
+-Not equal:
+	w sumie tak samo jak equal ;P
+
+-Less than:
+	w sumie tez prawie tak samo jak equal
+	w rejestrze 0 mamy a
+	w rejestrze 1 mamy b
+	jezeli a < b to a rej specjalnym 'a' zostawmy 1 a w przeciwnym wypadku 0
+	
+	//linia 0:	LOAD 0	//zaladuj a
+				SUB 1	//wykonaj a - b
+				JG 4	//jezeli wynik > 0 to znaczy ze a jest wieksze wiec skocz do linii 4 i zostaw 0
+				INC		//a bylo mniejsze niz 0, czyli wpisz do spec rej 'a' 1
+				
+	//linia 4:	ZERO	//wpisz do spec rej 'a' 0 - a nie jest mniejsze niz b
+-Greater than:
+	tak samo jak less than
+
+-Less or equal:
+	tak samo jak e less than tylko ze zamiast JG -> JZ //jezeli po odjeciu od siebie w 'a' jest 0 (jezeli odejmiemy wieksza od mniejszej to i tak bedzie 0!!!)
+-Greater or equal:
+	to samo co wyzej
+ 
+				
