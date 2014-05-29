@@ -39,7 +39,7 @@ READ                    { return(READ);     }
 "/"                     { return(DIV);      }
 "%"                     { return(MOD);      }
 
-[0-9]+                  { yylval.num = atoi(yytext);
+[0-9]+                  { yylval.num = (char *)strdup(yytext);
                             return(NUM); }
 [_a-z]+                 { yylval.str = (char *)strdup(yytext);
                             return(IDE); }
