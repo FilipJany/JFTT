@@ -2,7 +2,7 @@
 %option yylineno
 %{
     #include <stdlib.h>
-    #include "bison2.tab.h"
+    #include "bison.tab.h"
     int yylex();
     
 %}

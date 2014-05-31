@@ -1,18 +1,11 @@
 CONST
 	dwa=2 zero=0 jeden=1
 VAR
-    a b
+    a b c
 BEGIN
-    READ a;
-    READ b;
-    WHILE a!=b DO
-        IF a<b THEN 
-            a:=2;
-            b:=a-b;
-            a:=a-b;
-        ELSE
-        END
-        a:=a-b;
-    END
-    WRITE a;
+	IF a< b THEN
+		
+	ELSE
+		
+	END
 END
