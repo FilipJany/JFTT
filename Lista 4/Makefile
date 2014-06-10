@@ -5,3 +5,6 @@ program:
 
 clean:
 	rm -f bison.tab.c bison.tab.h lex.yy.c program
+	
+interpreter:
+	g++ -o interpreter interpreter.cc

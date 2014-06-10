@@ -4,15 +4,22 @@
     #include <stdlib.h>
     #include "bison.tab.h"
     int yylex();
-    
 %}
 
+%x COMM
+
 %%
+
+"(*"                    { BEGIN(COMM); }
+<COMM>"*)"              { BEGIN(INITIAL);}
+<COMM>[^*]*
+<COMM>"*"
+<COMM><<EOF>>           { printf("Error: unterminated comment\n"); yyterminate(); }
 
 [ \t\r\n]+              {}
 CONST                   { return(CONST);    }
 VAR                     { return(VAR);      }
-BEGIN                   { return(BEG);    }
+BEGIN                   { return(BEG);      }
 END                     { return(END);      }
 
 ":="                    { return(ASG);      }
@@ -39,7 +46,7 @@ READ                    { return(READ);     }
 "/"                     { return(DIV);      }
 "%"                     { return(MOD);      }
 
-[0-9]+                  { yylval.num = atoi(yytext);
+[0-9]+                  { yylval.str = (char *)strdup(yytext);
                             return(NUM); }
 [_a-z]+                 { yylval.str = (char *)strdup(yytext);
                             return(IDE); }
